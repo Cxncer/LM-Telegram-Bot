@@ -1,0 +1,28 @@
+name: Deploy Bot
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow on pushes to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Use the latest Ubuntu environment
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3  # Check out the code from the repository
+
+      - name: Set up Python
+        uses: actions/setup-python@v3  # Set up Python environment
+        with:
+          python-version: '3.9'  # Specify the Python version
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt  # Install the bot’s dependencies
+
+      - name: Run bot
+        run: |
+          python telegram_bot.py  # Run the bot script
+
