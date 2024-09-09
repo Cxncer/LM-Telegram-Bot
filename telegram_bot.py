@@ -37,6 +37,8 @@ async def price(update: Update, context):
     context.user_data['state'] = QUANTITY
     return QUANTITY
 
+import requests
+
 async def quantity(update: Update, context):
     user_input = update.message.text.strip()
 
@@ -65,6 +67,7 @@ async def quantity(update: Update, context):
         
         await update.message.reply_text(order_summary)
         context.user_data['state'] = None  # Reset state
+
         return ConversationHandler.END
     except ValueError:
         await update.message.reply_text("Please enter a valid quantity.")
