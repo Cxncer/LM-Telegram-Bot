@@ -1,4 +1,5 @@
 import os
+import requests
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler
@@ -8,6 +9,12 @@ load_dotenv()
 
 # Get the Telegram bot token from the environment variable
 TOKEN = os.getenv('TOKEN')
+
+# Replace 'YOUR_BOT_TOKEN' with your actual bot token
+token = '7077306574:AAFteOnIpbEvUNizRBZVDsWo9TE4KgEaKx4'
+url = f'https://api.telegram.org/bot{7077306574:AAFteOnIpbEvUNizRBZVDsWo9TE4KgEaKx4}/deleteWebhook'
+response = requests.get(url)
+print(response.json())  # Print response to verify successful webhook deletion
 
 # Define states for the conversation
 CUSTOMER_NAME, ORDER_ITEM, PRICE, QUANTITY = range(4)
