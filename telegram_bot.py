@@ -12,7 +12,7 @@ TOKEN = os.getenv('TOKEN')
 
 # Replace 'YOUR_BOT_TOKEN' with your actual bot token
 token = '7077306574:AAFteOnIpbEvUNizRBZVDsWo9TE4KgEaKx4'
-url = f'https://api.telegram.org/bot{7077306574:AAFteOnIpbEvUNizRBZVDsWo9TE4KgEaKx4}/deleteWebhook'
+url = f'https://api.telegram.org/bot7077306574:AAFteOnIpbEvUNizRBZVDsWo9TE4KgEaKx4/deleteWebhook'
 response = requests.get(url)
 print(response.json())  # Print response to verify successful webhook deletion
 
