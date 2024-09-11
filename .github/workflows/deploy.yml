@@ -1,5 +1,4 @@
 name: Deploy Telegram Bot
-
 on:
   push:
     branches:
