@@ -125,7 +125,7 @@ async def main_bot_function():
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('cancel', cancel))
     
-    # Start the bot
+    # Run the bot
     try:
         await application.run_polling()
     except TelegramError as e:
@@ -136,7 +136,11 @@ def run_flask():
 
 if __name__ == '__main__':
     # Start Flask app in a separate thread
-    Thread(target=run_flask).start()
+    Thread(target=run_flask, daemon=True).start()
     
     # Run the bot in the main thread
-    asyncio.run(main_bot_function())
+    loop = asyncio.get_event_loop()
+    try:
+        loop.run_until_complete(main_bot_function())
+    except KeyboardInterrupt:
+        pass
