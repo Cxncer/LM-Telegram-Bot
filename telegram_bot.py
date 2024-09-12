@@ -15,6 +15,12 @@ TOKEN = os.getenv('TOKEN')
 if not TOKEN:
     raise ValueError("No TOKEN found in environment variables.")
 
+# Delete any existing webhook
+def delete_webhook():
+    url = f'https://api.telegram.org/bot{TOKEN}/deleteWebhook'
+    response = requests.get(url)
+    print(response.json())  # Print response to verify successful webhook deletion
+
 # Define states for the conversation
 CUSTOMER_NAME, ORDER_ITEM, PRICE, QUANTITY = range(4)
 
@@ -83,6 +89,9 @@ async def cancel(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 def main():
+    # Delete any existing webhook
+    delete_webhook()
+
     application = Application.builder().token(TOKEN).build()
     
     # Define the ConversationHandler
