@@ -23,6 +23,5 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run Telegram Bot
-      run: |
-        nohup python ./telegram_bot.py > bot.log 2>&1 &
+      run: python telegram_bot.py
         
