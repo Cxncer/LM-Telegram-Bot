@@ -1,12 +1,9 @@
 import os
 import requests
-import asyncio
 from dotenv import load_dotenv
-from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
 from telegram.error import TelegramError
-from threading import Thread
 
 # Load environment variables from .env file
 load_dotenv()
@@ -20,25 +17,6 @@ if not TOKEN:
 
 # Define states for the conversation
 CUSTOMER_NAME, ORDER_ITEM, PRICE, QUANTITY = range(4)
-
-# Flask app setup
-app = Flask(__name__)
-
-@app.route('/')
-def index():
-    return 'Bot is running!'
-
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    json_update = request.get_json()
-    update = Update.de_json(json_update, application.bot)
-    application.update_queue.put(update)
-    return 'ok'
-
-# Delete any existing webhook
-url = f'https://api.telegram.org/bot{TOKEN}/deleteWebhook'
-response = requests.get(url)
-print(response.json())  # Print response to verify successful webhook deletion
 
 async def start(update: Update, context: CallbackContext):
     await update.message.reply_text(
@@ -104,8 +82,7 @@ async def cancel(update: Update, context: CallbackContext):
     context.user_data['state'] = None  # Reset state
     return ConversationHandler.END
 
-async def main_bot_function():
-    global application
+def main():
     application = Application.builder().token(TOKEN).build()
     
     # Define the ConversationHandler
@@ -127,20 +104,9 @@ async def main_bot_function():
     
     # Run the bot
     try:
-        await application.run_polling()
+        application.run_polling()
     except TelegramError as e:
         print(f"Telegram Error: {e}")
 
-def run_flask():
-    app.run(host='0.0.0.0', port=80)
-
 if __name__ == '__main__':
-    # Start Flask app in a separate thread
-    Thread(target=run_flask, daemon=True).start()
-    
-    # Run the bot in the main thread
-    loop = asyncio.get_event_loop()
-    try:
-        loop.run_until_complete(main_bot_function())
-    except KeyboardInterrupt:
-        pass
+    main()
