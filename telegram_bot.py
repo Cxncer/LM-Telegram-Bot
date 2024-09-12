@@ -1,11 +1,11 @@
 import os
 import requests
+import asyncio
 from dotenv import load_dotenv
 from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
 from telegram.error import TelegramError
-import asyncio
 from threading import Thread
 
 # Load environment variables from .env file
@@ -17,6 +17,9 @@ TOKEN = os.getenv('TOKEN')
 # Ensure the token is set
 if not TOKEN:
     raise ValueError("No TOKEN found in environment variables.")
+
+# Define states for the conversation
+CUSTOMER_NAME, ORDER_ITEM, PRICE, QUANTITY = range(4)
 
 # Flask app setup
 app = Flask(__name__)
@@ -36,9 +39,6 @@ def webhook():
 url = f'https://api.telegram.org/bot{TOKEN}/deleteWebhook'
 response = requests.get(url)
 print(response.json())  # Print response to verify successful webhook deletion
-
-# Define states for the conversation
-CUSTOMER_NAME, ORDER_ITEM, PRICE, QUANTITY = range(4)
 
 async def start(update: Update, context: CallbackContext):
     await update.message.reply_text(
