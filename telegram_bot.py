@@ -6,6 +6,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
 from telegram.error import TelegramError
 import asyncio
+from threading import Thread
 
 # Load environment variables from .env file
 load_dotenv()
@@ -130,13 +131,12 @@ async def main_bot_function():
     except TelegramError as e:
         print(f"Telegram Error: {e}")
 
-# Run the bot and Flask app concurrently
+def run_flask():
+    app.run(host='0.0.0.0', port=80)
+
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
+    # Start Flask app in a separate thread
+    Thread(target=run_flask).start()
     
-    # Run Flask app in a separate thread
-    from threading import Thread
-    Thread(target=lambda: app.run(host='0.0.0.0', port=80)).start()
-    
-    # Run the bot
-    loop.run_until_complete(main_bot_function())
+    # Run the bot in the main thread
+    asyncio.run(main_bot_function())
