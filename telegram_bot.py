@@ -130,10 +130,13 @@ async def main_bot_function():
     except TelegramError as e:
         print(f"Telegram Error: {e}")
 
-@app.before_first_request
-def start_bot():
-    loop = asyncio.get_event_loop()
-    loop.create_task(main_bot_function())
-
+# Run the bot and Flask app concurrently
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
+    loop = asyncio.get_event_loop()
+    
+    # Run Flask app in a separate thread
+    from threading import Thread
+    Thread(target=lambda: app.run(host='0.0.0.0', port=80)).start()
+    
+    # Run the bot
+    loop.run_until_complete(main_bot_function())
