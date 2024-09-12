@@ -1,8 +1,10 @@
 import os
 import requests
 from dotenv import load_dotenv
+from flask import Flask
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
+from telegram.error import TelegramError
 
 # Load environment variables from .env file
 load_dotenv()
@@ -14,41 +16,40 @@ TOKEN = os.getenv('TOKEN')
 if not TOKEN:
     raise ValueError("No TOKEN found in environment variables.")
 
-# Function to delete any existing webhook
-def delete_webhook(token):
-    url = f'https://api.telegram.org/bot{token}/deleteWebhook'
-    response = requests.get(url)
-    print("Webhook Deletion Response:", response.json())  # Print response to verify successful webhook deletion
+# Delete any existing webhook
+url = f'https://api.telegram.org/bot{TOKEN}/deleteWebhook'
+response = requests.get(url)
+print(response.json())  # Print response to verify successful webhook deletion
 
 # Define states for the conversation
 CUSTOMER_NAME, ORDER_ITEM, PRICE, QUANTITY = range(4)
 
-async def start(update: Update, context):
+async def start(update: Update, context: CallbackContext):
     await update.message.reply_text(
         "Welcome! Let's create an order. Please enter the Customer Name:"
     )
     context.user_data['state'] = CUSTOMER_NAME
     return CUSTOMER_NAME
 
-async def customer_name(update: Update, context):
+async def customer_name(update: Update, context: CallbackContext):
     context.user_data['customer_name'] = update.message.text
     await update.message.reply_text("Got it! Now, please enter the Order Item:")
     context.user_data['state'] = ORDER_ITEM
     return ORDER_ITEM
 
-async def order_item(update: Update, context):
+async def order_item(update: Update, context: CallbackContext):
     context.user_data['order_item'] = update.message.text
     await update.message.reply_text("Great! Please enter the Price:")
     context.user_data['state'] = PRICE
     return PRICE
 
-async def price(update: Update, context):
+async def price(update: Update, context: CallbackContext):
     context.user_data['price'] = update.message.text
     await update.message.reply_text("Almost done! Please enter the Quantity:")
     context.user_data['state'] = QUANTITY
     return QUANTITY
 
-async def quantity(update: Update, context):
+async def quantity(update: Update, context: CallbackContext):
     user_input = update.message.text.strip()
 
     if user_input.lower() == 'cancel':
@@ -82,16 +83,12 @@ async def quantity(update: Update, context):
         await update.message.reply_text("Please enter a valid quantity.")
         return QUANTITY
 
-async def cancel(update: Update, context):
+async def cancel(update: Update, context: CallbackContext):
     await update.message.reply_text("Order creation cancelled.")
     context.user_data['state'] = None  # Reset state
     return ConversationHandler.END
 
 def main():
-    # Delete any existing webhook
-    delete_webhook(TOKEN)
-    
-    # Set up the application with polling
     application = Application.builder().token(TOKEN).build()
     
     conv_handler = ConversationHandler(
@@ -111,8 +108,10 @@ def main():
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('cancel', cancel))
     
-    application.run_polling()
+    try:
+        application.run_polling()
+    except TelegramError as e:
+        print(f"Telegram Error: {e}")
 
 if __name__ == '__main__':
     main()
-    
