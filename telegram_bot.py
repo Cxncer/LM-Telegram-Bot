@@ -10,9 +10,12 @@ load_dotenv()
 # Get the Telegram bot token from the environment variable
 TOKEN = os.getenv('TOKEN')
 
-# Replace 'YOUR_BOT_TOKEN' with your actual bot token
-token = '7077306574:AAFteOnIpbEvUNizRBZVDsWo9TE4KgEaKx4'
-url = f'https://api.telegram.org/bot7077306574:AAFteOnIpbEvUNizRBZVDsWo9TE4KgEaKx4/deleteWebhook'
+# Ensure the token is set
+if not TOKEN:
+    raise ValueError("No TOKEN found in environment variables.")
+
+# Delete any existing webhook
+url = f'https://api.telegram.org/bot{TOKEN}/deleteWebhook'
 response = requests.get(url)
 print(response.json())  # Print response to verify successful webhook deletion
 
@@ -43,8 +46,6 @@ async def price(update: Update, context):
     await update.message.reply_text("Almost done! Please enter the Quantity:")
     context.user_data['state'] = QUANTITY
     return QUANTITY
-
-import requests
 
 async def quantity(update: Update, context):
     user_input = update.message.text.strip()
