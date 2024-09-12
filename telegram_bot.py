@@ -1,10 +1,11 @@
 import os
 import requests
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
 from telegram.error import TelegramError
+from threading import Thread
 
 # Load environment variables from .env file
 load_dotenv()
@@ -16,10 +17,19 @@ TOKEN = os.getenv('TOKEN')
 if not TOKEN:
     raise ValueError("No TOKEN found in environment variables.")
 
-# Delete any existing webhook
-url = f'https://api.telegram.org/bot{TOKEN}/deleteWebhook'
-response = requests.get(url)
-print(response.json())  # Print response to verify successful webhook deletion
+# Flask app setup
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return 'Bot is running!'
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    json_update = request.get_json()
+    update = Update.de_json(json_update, application.bot)
+    application.update_queue.put(update)
+    return 'ok'
 
 # Define states for the conversation
 CUSTOMER_NAME, ORDER_ITEM, PRICE, QUANTITY = range(4)
@@ -88,7 +98,8 @@ async def cancel(update: Update, context: CallbackContext):
     context.user_data['state'] = None  # Reset state
     return ConversationHandler.END
 
-def main():
+def main_bot_function():
+    global application
     application = Application.builder().token(TOKEN).build()
     
     conv_handler = ConversationHandler(
@@ -109,9 +120,15 @@ def main():
     application.add_handler(CommandHandler('cancel', cancel))
     
     try:
+        # Start the bot with polling
         application.run_polling()
     except TelegramError as e:
         print(f"Telegram Error: {e}")
 
 if __name__ == '__main__':
-    main()
+    # Start the bot in a separate thread
+    bot_thread = Thread(target=main_bot_function)
+    bot_thread.start()
+    
+    # Run the Flask app
+    app.run(host='0.0.0.0', port=80)
