@@ -5,7 +5,7 @@ from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
 from telegram.error import TelegramError
-from threading import Thread
+import asyncio
 
 # Load environment variables from .env file
 load_dotenv()
@@ -30,6 +30,11 @@ def webhook():
     update = Update.de_json(json_update, application.bot)
     application.update_queue.put(update)
     return 'ok'
+
+# Delete any existing webhook
+url = f'https://api.telegram.org/bot{TOKEN}/deleteWebhook'
+response = requests.get(url)
+print(response.json())  # Print response to verify successful webhook deletion
 
 # Define states for the conversation
 CUSTOMER_NAME, ORDER_ITEM, PRICE, QUANTITY = range(4)
@@ -98,10 +103,11 @@ async def cancel(update: Update, context: CallbackContext):
     context.user_data['state'] = None  # Reset state
     return ConversationHandler.END
 
-def main_bot_function():
+async def main_bot_function():
     global application
     application = Application.builder().token(TOKEN).build()
     
+    # Define the ConversationHandler
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
@@ -113,22 +119,21 @@ def main_bot_function():
         fallbacks=[CommandHandler('cancel', cancel)]
     )
     
+    # Add handlers to the application
     application.add_handler(conv_handler)
-    
-    # Add handler for /start and /cancel commands
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('cancel', cancel))
     
+    # Start the bot
     try:
-        # Start the bot with polling
-        application.run_polling()
+        await application.run_polling()
     except TelegramError as e:
         print(f"Telegram Error: {e}")
 
+@app.before_first_request
+def start_bot():
+    loop = asyncio.get_event_loop()
+    loop.create_task(main_bot_function())
+
 if __name__ == '__main__':
-    # Start the bot in a separate thread
-    bot_thread = Thread(target=main_bot_function)
-    bot_thread.start()
-    
-    # Run the Flask app
     app.run(host='0.0.0.0', port=80)
