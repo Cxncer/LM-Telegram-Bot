@@ -28,7 +28,7 @@ CUSTOMER_NAME, ORDER_ITEM, PRICE, QUANTITY = range(4)
 
 async def start(update: Update, context: CallbackContext):
     await update.message.reply_text(
-        "Welcome! Let's create an order. Please enter the Customer Name:"
+        "Welcome to Lomorng Aroma by Sam! Please enter the Customer Name:"
     )
     context.user_data['state'] = CUSTOMER_NAME
     return CUSTOMER_NAME
@@ -69,12 +69,12 @@ async def quantity(update: Update, context: CallbackContext):
         
         # Recite the order details in one message
         order_summary = (
-            f"Order Summary:\n"
-            f"Customer Name:    {context.user_data['customer_name']}\n"
-            f"Order Item:       {context.user_data['order_item']}\n"
-            f"Price:            {context.user_data['price']}\n"
-            f"Quantity:         {context.user_data['quantity']}\n"
-            f"Total Price:      {context.user_data['total_price']}"
+            f"Order Summary\n"
+            f" - Customer Name: {context.user_data['customer_name']}\n"
+            f" - Order Item:    {context.user_data['order_item']}\n"
+            f" - Price:         {context.user_data['price']}\n"
+            f" - Quantity:      {context.user_data['quantity']}\n"
+            f" - Total Price:   {context.user_data['total_price']}"
         )
         
         await update.message.reply_text(order_summary)
