@@ -44,12 +44,12 @@ async def quantity(update: Update, context: CallbackContext):
         quantity = int(user_input)
         price = float(context.user_data['price'])
         total_price = price * quantity
-        order_summary = (f"Order Summary:\n"
-                         f"Customer Name: {context.user_data['customer_name']}\n"
-                         f"Order Item: {context.user_data['order_item']}\n"
-                         f"Price: {context.user_data['price']}\n"
-                         f"Quantity: {quantity}\n"
-                         f"Total Price: {total_price}")
+        order_summary = (f"Order Summary\n"
+                         f"-Customer Name: {context.user_data['customer_name']}\n"
+                         f"-Order Item: {context.user_data['order_item']}\n"
+                         f"-Price: {context.user_data['price']}\n"
+                         f"-Quantity: {quantity}\n"
+                         f"-Total Price: {total_price}")
         await update.message.reply_text(order_summary)
         context.user_data['state'] = None
         return ConversationHandler.END
