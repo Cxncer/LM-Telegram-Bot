@@ -24,7 +24,7 @@ async def start(update: Update, context: CallbackContext):
 
 async def handle_text(update: Update, context: CallbackContext, next_state, field_name):
     context.user_data[field_name] = update.message.text
-    await update.message.reply_text(f"Got it! Now, please enter the next detail:")
+    await update.message.reply_text(f"Got it! Now, please enter order item:")
     context.user_data['state'] = next_state
     return next_state
 
