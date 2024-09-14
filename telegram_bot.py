@@ -68,11 +68,11 @@ async def quantity(update: Update, context: CallbackContext):
         # Recite the order details in one message
         order_summary = (
             f"Order Summary:\n"
-            f"Customer Name: {context.user_data['customer_name']}\n"
-            f"Order Item: {context.user_data['order_item']}\n"
-            f"Price: {context.user_data['price']}\n"
-            f"Quantity: {context.user_data['quantity']}\n"
-            f"Total Price: {context.user_data['total_price']}"
+            f"Customer Name:    {context.user_data['customer_name']}\n"
+            f"Order Item:       {context.user_data['order_item']}\n"
+            f"Price:            {context.user_data['price']}\n"
+            f"Quantity:         {context.user_data['quantity']}\n"
+            f"Total Price:      {context.user_data['total_price']}"
         )
         
         await update.message.reply_text(order_summary)
