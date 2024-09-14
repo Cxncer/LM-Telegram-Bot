@@ -1,4 +1,5 @@
 import os
+import requests
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
@@ -83,6 +84,12 @@ async def cancel(update: Update, context: CallbackContext):
     context.user_data['state'] = None  # Reset state
     return ConversationHandler.END
 
+# Function to delete the webhook
+def delete_webhook():
+    url = f'https://api.telegram.org/bot{TOKEN}/deleteWebhook'
+    response = requests.get(url)
+    print(response.json())  # Print response to verify successful webhook deletion
+
 # Define the ConversationHandler
 conv_handler = ConversationHandler(
     entry_points=[CommandHandler('start', start)],
@@ -101,4 +108,5 @@ application.add_handler(CommandHandler('cancel', cancel))
 
 # Run the bot with polling
 if __name__ == '__main__':
+    delete_webhook()  # Ensure no webhook is set
     application.run_polling()
