@@ -1,6 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
 from telegram.error import TelegramError
@@ -10,16 +11,17 @@ load_dotenv()
 
 # Get the Telegram bot token from the environment variable
 TOKEN = os.getenv('TOKEN')
+VERCEL_URL = os.getenv('VERCEL_URL')  # Add this to your .env (your Vercel app URL)
 
 # Ensure the token is set
 if not TOKEN:
     raise ValueError("No TOKEN found in environment variables.")
 
-# Delete any existing webhook
-def delete_webhook():
-    url = f'https://api.telegram.org/bot{TOKEN}/deleteWebhook'
-    response = requests.get(url)
-    print(response.json())  # Print response to verify successful webhook deletion
+# Set up Flask
+app = Flask(__name__)
+
+# Initialize the Telegram bot application
+application = Application.builder().token(TOKEN).build()
 
 # Define states for the conversation
 CUSTOMER_NAME, ORDER_ITEM, PRICE, QUANTITY = range(4)
@@ -88,34 +90,28 @@ async def cancel(update: Update, context: CallbackContext):
     context.user_data['state'] = None  # Reset state
     return ConversationHandler.END
 
-def main():
-    # Delete any existing webhook
-    delete_webhook()
+# Flask route to handle webhook updates
+@app.route(f'/{TOKEN}', methods=['POST'])
+def webhook():
+    update = Update.de_json(request.get_json(force=True), application.bot)
+    application.update_queue.put(update)  # Put the update in the queue for processing
+    return 'ok', 200
 
-    application = Application.builder().token(TOKEN).build()
-    
-    # Define the ConversationHandler
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start)],
-        states={
-            CUSTOMER_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, customer_name)],
-            ORDER_ITEM: [MessageHandler(filters.TEXT & ~filters.COMMAND, order_item)],
-            PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, price)],
-            QUANTITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, quantity)],
-        },
-        fallbacks=[CommandHandler('cancel', cancel)]
-    )
-    
-    # Add handlers to the application
-    application.add_handler(conv_handler)
-    application.add_handler(CommandHandler('start', start))
-    application.add_handler(CommandHandler('cancel', cancel))
-    
-    # Run the bot
-    try:
-        application.run_polling()
-    except TelegramError as e:
-        print(f"Telegram Error: {e}")
+# Set up webhook with Telegram
+def set_webhook():
+    webhook_url = f"{VERCEL_URL}/{TOKEN}"  # Your Vercel deployment URL
+    url = f'https://api.telegram.org/bot{TOKEN}/setWebhook?url={webhook_url}'
+    response = requests.get(url)
+    print(response.json())  # Check the response to ensure webhook is set
 
+# Delete any existing webhook
+def delete_webhook():
+    url = f'https://api.telegram.org/bot{TOKEN}/deleteWebhook'
+    response = requests.get(url)
+    print(response.json())  # Print response to verify successful webhook deletion
+
+# Main function to set the webhook and start the Flask app
 if __name__ == '__main__':
-    main()
+    delete_webhook()  # Clean up any previous webhooks
+    set_webhook()     # Set the new webhook
+    app.run(debug=True, port=5000)  # Run the Flask app
