@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "requirements.txt",
+      "src": "telegram_bot.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/telegram_bot.py"
+      "dest": "telegram_bot.py"
     }
   ]
 }
