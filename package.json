@@ -1,12 +1,13 @@
 {
-  "name": "my-node-app",
+  "name": "telegram-bot",
   "version": "1.0.0",
-  "description": "A basic Node.js app",
   "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "telegraf": "^4.7.0",
+    "dotenv": "^10.0.0"
+  },
   "scripts": {
     "start": "node index.js"
-  },
-  "dependencies": {
-    "express": "^4.17.1"
   }
 }
