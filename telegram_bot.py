@@ -79,5 +79,4 @@ application.add_handler(conv_handler)
 application.add_handler(CommandHandler('cancel', cancel))
 
 if __name__ == '__main__':
-    delete_webhook()
     application.run_polling()
