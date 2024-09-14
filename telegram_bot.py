@@ -62,11 +62,6 @@ async def cancel(update: Update, context: CallbackContext):
     context.user_data['state'] = None
     return ConversationHandler.END
 
-def delete_webhook():
-    url = f'https://api.telegram.org/bot{TOKEN}/deleteWebhook'
-    response = requests.get(url)
-    print(response.json())
-
 # Define the ConversationHandler
 conv_handler = ConversationHandler(
     entry_points=[CommandHandler('start', start)],
