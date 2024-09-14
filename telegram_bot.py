@@ -50,7 +50,7 @@ async def quantity(update: Update, context: CallbackContext):
                          f"Price: *{context.user_data['price']}*\n"
                          f"Quantity: *{quantity}*\n"
                          f"Total Price: *{total_price}*")
-        await update.message.reply_text(order_summary)
+        await update.message.reply_text(order_summary, parse_mode='MarkdownV2')
         context.user_data['state'] = None
         return ConversationHandler.END
     except ValueError:
