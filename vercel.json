@@ -3,12 +3,15 @@
   "builds": [
     {
       "src": "telegram_bot.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb" 
+      }
     }
   ],
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/webhook",
       "dest": "telegram_bot.py"
     }
   ]
