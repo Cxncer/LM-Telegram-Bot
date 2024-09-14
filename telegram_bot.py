@@ -1,7 +1,6 @@
 import os
 import requests
 from dotenv import load_dotenv
-from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
 from telegram.error import TelegramError
@@ -11,14 +10,10 @@ load_dotenv()
 
 # Get the Telegram bot token from the environment variable
 TOKEN = os.getenv('TOKEN')
-VERCEL_URL = os.getenv('VERCEL_URL')  # Add this to your .env (your Vercel app URL)
 
 # Ensure the token is set
 if not TOKEN:
     raise ValueError("No TOKEN found in environment variables.")
-
-# Set up Flask
-app = Flask(__name__)
 
 # Initialize the Telegram bot application
 application = Application.builder().token(TOKEN).build()
@@ -90,31 +85,8 @@ async def cancel(update: Update, context: CallbackContext):
     context.user_data['state'] = None  # Reset state
     return ConversationHandler.END
 
-# Flask route to handle webhook updates
-@app.route(f'/{TOKEN}', methods=['POST'])
-def webhook():
-    update = Update.de_json(request.get_json(force=True), application.bot)
-    application.update_queue.put(update)  # Put the update in the queue for processing
-    return 'ok', 200
-
-# Set up webhook with Telegram
-def set_webhook():
-    webhook_url = f"{VERCEL_URL}/{TOKEN}"  # Your Vercel deployment URL
-    url = f'https://api.telegram.org/bot{TOKEN}/setWebhook?url={webhook_url}'
-    response = requests.get(url)
-    print(response.json())  # Check the response to ensure webhook is set
-
-# Delete any existing webhook
-def delete_webhook():
-    url = f'https://api.telegram.org/bot{TOKEN}/deleteWebhook'
-    response = requests.get(url)
-    print(response.json())  # Print response to verify successful webhook deletion
-
-# Main function to set the webhook and start the Flask app
+# Main function to set the webhook and start the application
 if __name__ == '__main__':
-    delete_webhook()  # Clean up any previous webhooks
-    set_webhook()     # Set the new webhook
-
     # Define the ConversationHandler
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
@@ -131,5 +103,5 @@ if __name__ == '__main__':
     application.add_handler(conv_handler)
     application.add_handler(CommandHandler('cancel', cancel))
 
-    # Run the Flask app
-    app.run(debug=True, port=5000)
+    # Run the application
+    application.run_polling()
