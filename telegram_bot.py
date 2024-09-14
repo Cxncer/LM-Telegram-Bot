@@ -1,9 +1,7 @@
 import os
-import requests
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
-from telegram.error import TelegramError
 
 # Load environment variables from .env file
 load_dotenv()
@@ -85,23 +83,22 @@ async def cancel(update: Update, context: CallbackContext):
     context.user_data['state'] = None  # Reset state
     return ConversationHandler.END
 
-# Main function to set the webhook and start the application
-if __name__ == '__main__':
-    # Define the ConversationHandler
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start)],
-        states={
-            CUSTOMER_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, customer_name)],
-            ORDER_ITEM: [MessageHandler(filters.TEXT & ~filters.COMMAND, order_item)],
-            PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, price)],
-            QUANTITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, quantity)],
-        },
-        fallbacks=[CommandHandler('cancel', cancel)]
-    )
-    
-    # Add handlers to the application
-    application.add_handler(conv_handler)
-    application.add_handler(CommandHandler('cancel', cancel))
+# Define the ConversationHandler
+conv_handler = ConversationHandler(
+    entry_points=[CommandHandler('start', start)],
+    states={
+        CUSTOMER_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, customer_name)],
+        ORDER_ITEM: [MessageHandler(filters.TEXT & ~filters.COMMAND, order_item)],
+        PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, price)],
+        QUANTITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, quantity)],
+    },
+    fallbacks=[CommandHandler('cancel', cancel)]
+)
 
-    # Run the application
+# Add handlers to the application
+application.add_handler(conv_handler)
+application.add_handler(CommandHandler('cancel', cancel))
+
+# Run the bot with polling
+if __name__ == '__main__':
     application.run_polling()
