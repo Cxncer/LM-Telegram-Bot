@@ -1,17 +1,17 @@
-const express = require('express');
+require('dotenv').config();
 const { Telegraf } = require('telegraf');
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
+const bot = new Telegraf(process.env.TOKEN);
 
-const app = express();
+// Check if the TOKEN is loaded properly
+if (!process.env.TOKEN) {
+    console.error("Error: Bot Token is missing!");
+    process.exit(1);
+}
 
-// Telegraf uses Express middleware for webhook integration
-app.use(bot.webhookCallback('/bot'));
+bot.start((ctx) => ctx.reply('Welcome to the bot!'));
 
-// Set webhook for the bot on the correct URL
-bot.telegram.setWebhook(`lmtelegrambot.vercel.app`);
+// Set webhook or polling based on your setup
+bot.launch();
 
-// Listen to Vercel's port
-app.listen(3000, () => {
-  console.log('Bot is running...');
-});
+console.log('Bot is up and running...');
