@@ -28,7 +28,7 @@ CUSTOMER_NAME, ORDER_ITEM, PRICE, QUANTITY = range(4)
 
 async def start(update: Update, context: CallbackContext):
     await update.message.reply_text(
-        "Welcome to Lomorng Aroma by Sam! Please enter the Customer Name:"
+        "Welcome! Let's create an order. Please enter the Customer Name:"
     )
     context.user_data['state'] = CUSTOMER_NAME
     return CUSTOMER_NAME
@@ -69,12 +69,12 @@ async def quantity(update: Update, context: CallbackContext):
         
         # Recite the order details in one message
         order_summary = (
-            f"Order Summary\n"
-            f" - Customer Name: {context.user_data['customer_name']}\n"
-            f" - Order Item:    {context.user_data['order_item']}\n"
-            f" - Price:         {context.user_data['price']}\n"
-            f" - Quantity:      {context.user_data['quantity']}\n"
-            f" - Total Price:   {context.user_data['total_price']}"
+            f"Order Summary:\n"
+            f"Customer Name:    {context.user_data['customer_name']}\n"
+            f"Order Item:       {context.user_data['order_item']}\n"
+            f"Price:            {context.user_data['price']}\n"
+            f"Quantity:         {context.user_data['quantity']}\n"
+            f"Total Price:      {context.user_data['total_price']}"
         )
         
         await update.message.reply_text(order_summary)
@@ -114,4 +114,22 @@ def delete_webhook():
 if __name__ == '__main__':
     delete_webhook()  # Clean up any previous webhooks
     set_webhook()     # Set the new webhook
-    app.run(debug=True, port=5000)  # Run the Flask app
+
+    # Define the ConversationHandler
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+        states={
+            CUSTOMER_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, customer_name)],
+            ORDER_ITEM: [MessageHandler(filters.TEXT & ~filters.COMMAND, order_item)],
+            PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, price)],
+            QUANTITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, quantity)],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+    
+    # Add handlers to the application
+    application.add_handler(conv_handler)
+    application.add_handler(CommandHandler('cancel', cancel))
+
+    # Run the Flask app
+    app.run(debug=True, port=5000)
