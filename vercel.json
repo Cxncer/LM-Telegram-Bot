@@ -1,16 +1,18 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "telegram_bot.py",
-        "use": "@vercel/python"
+  "version": 2,
+  "builds": [
+    {
+      "src": "telegram_bot.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb" 
       }
-    ],
-    "routes": [
-      {
-        "src": "/",
-        "dest": "telegram_bot.py"
-      }
-    ]
-  }
-  
+    }
+  ],
+  "routes": [
+    {
+      "src": "/webhook",
+      "dest": "telegram_bot.py"
+    }
+  ]
+}
