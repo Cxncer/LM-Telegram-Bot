@@ -24,11 +24,11 @@ async def start(update: Update, context: CallbackContext):
     context.user_data['state'] = CUSTOMER_NAME
     return CUSTOMER_NAME
 
-async def handle_text(update: Update, context: CallbackContext, next_state, field_name):
-    context.user_data[field_name] = update.message.text
-    await update.message.reply_text(f"Got it! Now, please enter the {field_name.replace('_', ' ').capitalize()}:")
-    context.user_data['state'] = next_state
-    return next_state
+async def order_item(update: Update, context: CallbackContext):
+    context.user_data[order_item] = update.message.text
+    await update.message.reply_text("Got it! Now, please enter the order item.")
+    context.user_data['state'] = ORDER_ITEM
+    return ORDER_ITEM
 
 async def price(update: Update, context: CallbackContext):
     try:
@@ -113,12 +113,8 @@ async def button_click(update: Update, context: CallbackContext):
 conv_handler = ConversationHandler(
     entry_points=[CommandHandler('start', start)],
     states={
-        CUSTOMER_NAME: [
-            MessageHandler(filters.TEXT & ~filters.COMMAND, lambda u, c: handle_text(u, c, ORDER_ITEM, 'customer_name'))
-        ],
-        ORDER_ITEM: [
-            MessageHandler(filters.TEXT & ~filters.COMMAND, lambda u, c: handle_text(u, c, PRICE, 'order_item'))
-        ],
+        CUSTOMER_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, CUSTOMER_NAME)],
+        ORDER_ITEM: [MessageHandler(filters.TEXT & ~filters.COMMAND, order_item)],
         PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, price)],
         QUANTITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, quantity)],
     },
