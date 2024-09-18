@@ -119,37 +119,36 @@ async def button_click(update: Update, context: CallbackContext):
             formatted_time = now.strftime("%I:%M %p")
             formatted_date = now.strftime("%d/%m/%Y")
 
+            # Ensure all data is correctly formatted
+            payload = {
+                "customer_name": user_data.get('customer_name', 'N/A'),
+                "order_item": user_data.get('order_item', 'N/A'),
+                "price": f"${user_data.get('price', 0):.2f}",  # Add currency format
+                "quantity": user_data.get('quantity', 0),
+                "total_price": f"${total_price:.2f}",  # Add currency format
+                "time": formatted_time,
+                "date": formatted_date
+            }
+
+            # Log payload for debugging
+            import logging
+            logging.basicConfig(level=logging.INFO)
+            logging.info(f"Payload being sent: {payload}")
+
+            # Send data to Make.com
+            response = requests.post(WEBHOOK_URL, json=payload)
+
+            if response.ok:
+                receipt_url = response.json().get('receipt_url')
+                if receipt_url:
+                    await query.message.reply_text("Your receipt is being processed. It will be sent to you shortly.")
+                    await context.bot.send_document(chat_id=update.effective_chat.id, document=receipt_url)
+                else:
+                    await query.message.reply_text("There was an issue processing your receipt.")
+            else:
+                await query.message.reply_text("Failed to send data for receipt processing.")
         except ValueError:
             await query.message.reply_text("Error in data conversion.")
-            return
-
-        payload = {
-            "customer_name": user_data.get('customer_name'),
-            "order_item": user_data.get('order_item'),
-            "price": f"${user_data.get('price', 0):.2f}",  # Add currency format
-            "quantity": user_data.get('quantity'),
-            "total_price": f"${total_price:.2f}",  # Add currency format
-            "time": formatted_time,
-            "date": formatted_date
-        }
-
-        # Log payload for debugging
-        import logging
-        logging.basicConfig(level=logging.INFO)
-        logging.info(f"Payload being sent: {payload}")
-
-        # Send data to Make.com
-        response = requests.post(WEBHOOK_URL, json=payload)
-        
-        if response.ok:
-            receipt_url = response.json().get('receipt_url')
-            if receipt_url:
-                await query.message.reply_text("Your receipt is being processed. It will be sent to you shortly.")
-                await context.bot.send_document(chat_id=update.effective_chat.id, document=receipt_url)
-            else:
-                await query.message.reply_text("There was an issue processing your receipt.")
-        else:
-            await query.message.reply_text("Failed to send data for receipt processing.")
 
 # Define the ConversationHandler
 conv_handler = ConversationHandler(
