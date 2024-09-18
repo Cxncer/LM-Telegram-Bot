@@ -27,8 +27,8 @@ async def start(update: Update, context: CallbackContext):
 async def handle_text(update: Update, context: CallbackContext, next_state, field_name):
     context.user_data[field_name] = update.message.text
     await update.message.reply_text(f"Got it! Now, please enter the order item:")
-    context.user_data['state'] = next_state
-    return next_state
+    context.user_data['state'] = ORDER_ITEM
+    return ORDER_ITEM
 
 async def price(update: Update, context: CallbackContext):
     context.user_data['price'] = update.message.text
