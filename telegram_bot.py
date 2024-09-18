@@ -24,26 +24,32 @@ async def start(update: Update, context: CallbackContext):
     context.user_data['state'] = CUSTOMER_NAME
     return CUSTOMER_NAME
 
-async def order_item(update: Update, context: CallbackContext):
-    context.user_data[order_item] = update.message.text
-    await update.message.reply_text("Got it! Now, please enter the order item.")
+async def handle_customer_name(update: Update, context: CallbackContext):
+    context.user_data['customer_name'] = update.message.text
+    await update.message.reply_text("Got it! Now, please enter the Order Item:")
     context.user_data['state'] = ORDER_ITEM
     return ORDER_ITEM
 
-async def price(update: Update, context: CallbackContext):
+async def handle_order_item(update: Update, context: CallbackContext):
+    context.user_data['order_item'] = update.message.text
+    await update.message.reply_text("Got it! Now, please enter the Price:")
+    context.user_data['state'] = PRICE
+    return PRICE
+
+async def handle_price(update: Update, context: CallbackContext):
     try:
         price = float(update.message.text)
         if price <= 0:
             raise ValueError
         context.user_data['price'] = price
-        await update.message.reply_text("Almost done! Please enter the Quantity:")
+        await update.message.reply_text("Got it! Now, please enter the Quantity:")
         context.user_data['state'] = QUANTITY
         return QUANTITY
     except ValueError:
         await update.message.reply_text("Please enter a valid positive price.")
         return PRICE
 
-async def quantity(update: Update, context: CallbackContext):
+async def handle_quantity(update: Update, context: CallbackContext):
     user_input = update.message.text.strip()
     if user_input.lower() == 'cancel':
         await cancel(update, context)
@@ -113,10 +119,10 @@ async def button_click(update: Update, context: CallbackContext):
 conv_handler = ConversationHandler(
     entry_points=[CommandHandler('start', start)],
     states={
-        CUSTOMER_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, CUSTOMER_NAME)],
-        ORDER_ITEM: [MessageHandler(filters.TEXT & ~filters.COMMAND, order_item)],
-        PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, price)],
-        QUANTITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, quantity)],
+        CUSTOMER_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_customer_name)],
+        ORDER_ITEM: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_order_item)],
+        PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_price)],
+        QUANTITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_quantity)],
     },
     fallbacks=[
         CommandHandler('cancel', cancel),
