@@ -26,15 +26,22 @@ async def start(update: Update, context: CallbackContext):
 
 async def handle_text(update: Update, context: CallbackContext, next_state, field_name):
     context.user_data[field_name] = update.message.text
-    await update.message.reply_text(f"Got it! Now, please enter the order item:")
-    context.user_data['state'] = ORDER_ITEM
-    return ORDER_ITEM
+    await update.message.reply_text(f"Got it! Now, please enter the {field_name.replace('_', ' ').capitalize()}:")
+    context.user_data['state'] = next_state
+    return next_state
 
 async def price(update: Update, context: CallbackContext):
-    context.user_data['price'] = update.message.text
-    await update.message.reply_text("Almost done! Please enter the Quantity:")
-    context.user_data['state'] = QUANTITY
-    return QUANTITY
+    try:
+        price = float(update.message.text)
+        if price <= 0:
+            raise ValueError
+        context.user_data['price'] = price
+        await update.message.reply_text("Almost done! Please enter the Quantity:")
+        context.user_data['state'] = QUANTITY
+        return QUANTITY
+    except ValueError:
+        await update.message.reply_text("Please enter a valid positive price.")
+        return PRICE
 
 async def quantity(update: Update, context: CallbackContext):
     user_input = update.message.text.strip()
@@ -44,6 +51,8 @@ async def quantity(update: Update, context: CallbackContext):
 
     try:
         quantity = int(user_input)
+        if quantity <= 0:
+            raise ValueError
         price = float(context.user_data['price'])
         total_price = price * quantity
         order_summary = (f"Order Summary\n"
@@ -60,7 +69,7 @@ async def quantity(update: Update, context: CallbackContext):
         context.user_data['state'] = None  # End the conversation after showing the summary
         return ConversationHandler.END
     except ValueError:
-        await update.message.reply_text("Please enter a valid quantity.")
+        await update.message.reply_text("Please enter a valid positive quantity.")
         return QUANTITY
 
 async def cancel(update: Update, context: CallbackContext):
