@@ -98,7 +98,7 @@ async def button_click(update: Update, context: CallbackContext):
             "customer_name": user_data.get('customer_name'),
             "order_item": user_data.get('order_item'),
             "price": user_data.get('price'),
-            "quantity": user_data.get('quantity'),
+            "quantity": user_data.get('quantity'), # Ensure this is not None or empty
             "total_price": float(user_data.get('price', 0)) * int(user_data.get('quantity', 0))
         }
         
