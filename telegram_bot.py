@@ -56,10 +56,11 @@ async def handle_quantity(update: Update, context: CallbackContext):
         return ConversationHandler.END
 
     try:
-        quantity = int(user_input)
+        quantity = int(user_input)  # Ensure quantity is an integer
         if quantity <= 0:
-            raise ValueError
-        price = float(context.user_data['price'])
+            raise ValueError("Quantity must be a positive integer.")
+        context.user_data['quantity'] = quantity  # Save as integer
+        price = float(context.user_data['price'])  # Ensure price is a float
         total_price = price * quantity
         order_summary = (f"Order Summary\n"
                          f"Customer Name: {context.user_data['customer_name']}\n"
@@ -68,14 +69,13 @@ async def handle_quantity(update: Update, context: CallbackContext):
                          f"Quantity: {quantity}\n"
                          f"Total Price: {total_price}")
 
-        # Add a button to send receipt
         keyboard = [[InlineKeyboardButton("Send Receipt", callback_data='send_receipt')]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text(order_summary, reply_markup=reply_markup)
         context.user_data['state'] = None  # End the conversation after showing the summary
         return ConversationHandler.END
-    except ValueError:
-        await update.message.reply_text("Please enter a valid positive quantity.")
+    except ValueError as e:
+        await update.message.reply_text(f"Error: {e}")
         return QUANTITY
 
 async def cancel(update: Update, context: CallbackContext):
@@ -91,21 +91,35 @@ async def restart(update: Update, context: CallbackContext):
 async def button_click(update: Update, context: CallbackContext):
     query = update.callback_query
     query.answer()
+    
     if query.data == 'send_receipt':
-        # Collect data
+        # Collect data and ensure types
         user_data = context.user_data
+        try:
+            price = float(user_data.get('price', 0))  # Ensure price is a float
+            quantity = int(user_data.get('quantity', 0))  # Ensure quantity is an integer
+            total_price = price * quantity
+        except ValueError:
+            await query.message.reply_text("Error in data conversion.")
+            return
+
         payload = {
             "customer_name": user_data.get('customer_name'),
             "order_item": user_data.get('order_item'),
-            "price": user_data.get('price'),
-            "quantity": user_data.get('quantity'), # Ensure this is not None or empty
-            "total_price": float(user_data.get('price', 0)) * int(user_data.get('quantity', 0))
+            "price": price,
+            "quantity": quantity,
+            "total_price": total_price
         }
-        
+
+        # Log payload for debugging
+        import logging
+        logging.basicConfig(level=logging.INFO)
+        logging.info(f"Payload being sent: {payload}")
+
         # Send data to Make.com
         response = requests.post(WEBHOOK_URL, json=payload)
+        
         if response.ok:
-            # Handle success and send receipt
             receipt_url = response.json().get('receipt_url')
             if receipt_url:
                 await query.message.reply_text("Your receipt is being processed. It will be sent to you shortly.")
