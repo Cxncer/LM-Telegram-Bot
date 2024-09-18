@@ -25,8 +25,8 @@ async def start(update: Update, context: CallbackContext):
 async def handle_text(update: Update, context: CallbackContext, next_state, field_name):
     context.user_data[field_name] = update.message.text
     await update.message.reply_text(f"Got it! Now, please enter the order item:")
-    context.user_data['state'] = next_state
-    return next_state
+    context.user_data['state'] = ORDER_ITEM
+    return ORDER_ITEM
 
 async def price(update: Update, context: CallbackContext):
     context.user_data['price'] = update.message.text
@@ -45,11 +45,11 @@ async def quantity(update: Update, context: CallbackContext):
         price = float(context.user_data['price'])
         total_price = price * quantity
         order_summary = (f"Order Summary\n"
-                         f"-Customer Name: {context.user_data['customer_name']}\n"
-                         f"-Order Item: {context.user_data['order_item']}\n"
-                         f"-Price: {context.user_data['price']}\n"
-                         f"-Quantity: {quantity}\n"
-                         f"-Total Price: {total_price}")
+                         f"Customer Name: {context.user_data['customer_name']}\n"
+                         f"Order Item: {context.user_data['order_item']}\n"
+                         f"Price: {context.user_data['price']}\n"
+                         f"Quantity: {quantity}\n"
+                         f"Total Price: {total_price}")
         await update.message.reply_text(order_summary)
         context.user_data.clear()  # Clear user data after the order is completed
         return ConversationHandler.END
