@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext, CallbackQueryHandler
 from datetime import datetime
+import pytz  # Ensure you have pytz installed for timezone handling
 
 # Load environment variables
 load_dotenv()
@@ -33,7 +34,7 @@ async def handle_customer_name(update: Update, context: CallbackContext):
 
 async def handle_order_item(update: Update, context: CallbackContext):
     context.user_data['order_item'] = update.message.text
-    await update.message.reply_text("Got it! Now, please enter the Price (in $):")
+    await update.message.reply_text("Got it! Now, please enter the Price:")
     context.user_data['state'] = PRICE
     return PRICE
 
@@ -61,22 +62,25 @@ async def handle_quantity(update: Update, context: CallbackContext):
         if quantity <= 0:
             raise ValueError("Quantity must be a positive integer.")
         context.user_data['quantity'] = quantity  # Save as integer
+
+        # Calculate total price
         price = float(context.user_data['price'])  # Ensure price is a float
         total_price = price * quantity
-        
-        # Get current date and time
-        now = datetime.now()
-        time_str = now.strftime("%I:%M %p")  # AM/PM format
-        date_str = now.strftime("%d/%m/%Y")  # DD/MM/YYYY format
-        
+
+        # Get current time and date in GMT+7
+        tz = pytz.timezone('Asia/Jakarta')  # GMT+7
+        now = datetime.now(tz)
+        formatted_time = now.strftime("%I:%M %p")
+        formatted_date = now.strftime("%d/%m/%Y")
+
         order_summary = (f"Order Summary\n"
                          f"Customer Name: {context.user_data['customer_name']}\n"
                          f"Order Item: {context.user_data['order_item']}\n"
                          f"Price: ${context.user_data['price']:.2f}\n"
                          f"Quantity: {quantity}\n"
                          f"Total Price: ${total_price:.2f}\n"
-                         f"Time: {time_str}\n"
-                         f"Date: {date_str}")
+                         f"Time: {formatted_time}\n"
+                         f"Date: {formatted_date}")
 
         keyboard = [[InlineKeyboardButton("Send Receipt", callback_data='send_receipt')]]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -115,11 +119,9 @@ async def button_click(update: Update, context: CallbackContext):
         payload = {
             "customer_name": user_data.get('customer_name'),
             "order_item": user_data.get('order_item'),
-            "price": f"${float(user_data.get('price', 0)):.2f}",
-            "quantity": int(user_data.get('quantity', 0)),
-            "total_price": f"${float(user_data.get('price', 0)) * int(user_data.get('quantity', 0)):.2f}",
-            "time": datetime.now().strftime("%I:%M %p"),
-            "date": datetime.now().strftime("%d/%m/%Y")
+            "price": price,
+            "quantity": quantity,
+            "total_price": total_price
         }
 
         # Log payload for debugging
