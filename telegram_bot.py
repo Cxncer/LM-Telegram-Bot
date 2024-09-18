@@ -112,6 +112,13 @@ async def button_click(update: Update, context: CallbackContext):
             price = float(user_data.get('price', 0))  # Ensure price is a float
             quantity = int(user_data.get('quantity', 0))  # Ensure quantity is an integer
             total_price = price * quantity
+
+            # Get current time and date in GMT+7 for the receipt
+            tz = pytz.timezone('Asia/Jakarta')  # GMT+7
+            now = datetime.now(tz)
+            formatted_time = now.strftime("%I:%M %p")
+            formatted_date = now.strftime("%d/%m/%Y")
+
         except ValueError:
             await query.message.reply_text("Error in data conversion.")
             return
@@ -119,9 +126,11 @@ async def button_click(update: Update, context: CallbackContext):
         payload = {
             "customer_name": user_data.get('customer_name'),
             "order_item": user_data.get('order_item'),
-            "price": price,
-            "quantity": quantity,
-            "total_price": total_price
+            "price": f"${user_data.get('price', 0):.2f}",  # Add currency format
+            "quantity": user_data.get('quantity'),
+            "total_price": f"${total_price:.2f}",  # Add currency format
+            "time": formatted_time,
+            "date": formatted_date
         }
 
         # Log payload for debugging
