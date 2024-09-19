@@ -143,12 +143,6 @@ async def button_click(update: Update, context: CallbackContext):
                 if receipt_url:
                     await query.message.reply_text("Your receipt is being processed. It will be sent to you shortly.")
                     await context.bot.send_document(chat_id=update.effective_chat.id, document=receipt_url)
-                else:
-                    await query.message.reply_text("There was an issue processing your receipt.")
-            else:
-                await query.message.reply_text("Failed to send data for receipt processing.")
-        except ValueError:
-            await query.message.reply_text("Error in data conversion.")
 
 # Define the ConversationHandler
 conv_handler = ConversationHandler(
